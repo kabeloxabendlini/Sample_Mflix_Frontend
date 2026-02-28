@@ -83,8 +83,14 @@ class MovieDataService {
   // Delete a review
   async deleteReview(reviewId, userId) {
     try {
-      const res = await api.delete(
-        `/reviews?id=${reviewId}&user_id=${userId}`
+      const res = await axios.delete(
+        `${process.env.REACT_APP_API_BASE_URL}/api/v1/reviews`,
+        {
+          data: {
+            review_id: reviewId,
+            user_id: userId,
+          },
+        }
       );
       return res.data;
     } catch (error) {
