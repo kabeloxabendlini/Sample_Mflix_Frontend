@@ -3,7 +3,6 @@ import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-b
 import { Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
-// Fallback image for missing posters
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
   encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450">
@@ -49,6 +48,7 @@ const MoviesList = () => {
   };
 
   const find = async (query, by) => {
+    if (!query) return;
     setLoading(true);
     setError("");
     try {
@@ -62,9 +62,7 @@ const MoviesList = () => {
   };
 
   const findByTitle = () => searchTitle && find(searchTitle, "title");
-  const findByRating = () => {
-    searchRating === "All Ratings" ? retrieveMovies() : find(searchRating, "rated");
-  };
+  const findByRating = () => searchRating === "All Ratings" ? retrieveMovies() : find(searchRating, "rated");
 
   const handleImageError = (e) => {
     e.target.onerror = null;
@@ -84,22 +82,13 @@ const MoviesList = () => {
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
             />
-            <Button className="mt-2" onClick={findByTitle} disabled={loading}>
-              Search by Title
-            </Button>
+            <Button className="mt-2" onClick={findByTitle} disabled={loading}>Search by Title</Button>
           </Col>
           <Col>
-            <Form.Select
-              value={searchRating}
-              onChange={(e) => setSearchRating(e.target.value)}
-            >
-              {ratings.map((r, i) => (
-                <option key={i} value={r}>{r}</option>
-              ))}
+            <Form.Select value={searchRating} onChange={(e) => setSearchRating(e.target.value)}>
+              {ratings.map((r, i) => <option key={i} value={r}>{r}</option>)}
             </Form.Select>
-            <Button className="mt-2" onClick={findByRating} disabled={loading}>
-              Filter by Rating
-            </Button>
+            <Button className="mt-2" onClick={findByRating} disabled={loading}>Filter by Rating</Button>
           </Col>
         </Row>
       </Form>
@@ -108,21 +97,23 @@ const MoviesList = () => {
       {loading && <Spinner animation="border" variant="primary" />}
 
       <Row>
-        {movies.length > 0 ? movies.map((movie) => (
-          <Col key={movie._id} md={3} className="mb-4">
-            <Card>
-              <Card.Img
-                src={movie.poster || FALLBACK_IMAGE}
-                onError={handleImageError}
-                style={{ height: "300px", objectFit: "cover" }}
-              />
-              <Card.Body>
-                <Card.Title>{movie.title}</Card.Title>
-                <Card.Text>Rating: {movie.rated}</Card.Text>
-                <Link to={`/movies/${movie._id}`}>View Reviews</Link>
-              </Card.Body>
-            </Card>
-          </Col>
+        {movies.length > 0 ? movies.map(movie => (
+          movie._id ? (
+            <Col key={movie._id} md={3} className="mb-4">
+              <Card>
+                <Card.Img
+                  src={movie.poster || FALLBACK_IMAGE}
+                  onError={handleImageError}
+                  style={{ height: "300px", objectFit: "cover" }}
+                />
+                <Card.Body>
+                  <Card.Title>{movie.title}</Card.Title>
+                  <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
+                  <Link to={`/movies/${movie._id}`}>View Reviews</Link>
+                </Card.Body>
+              </Card>
+            </Col>
+          ) : null
         )) : !loading && <p>No movies found.</p>}
       </Row>
     </Container>

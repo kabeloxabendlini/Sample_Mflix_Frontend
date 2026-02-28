@@ -7,8 +7,8 @@ const BASE_URL =
 // Axios instance with timeout and credentials
 const api = axios.create({
   baseURL: BASE_URL + "/api/v1/movies",
-  withCredentials: true, // use cookies if backend requires auth
-  timeout: 10000,        // 10-second timeout
+  withCredentials: true,
+  timeout: 10000,
 });
 
 // Centralized error handling
@@ -20,7 +20,7 @@ const handleAxiosError = (error, context = "") => {
   } else {
     console.error(`[${context}] Error:`, error.message);
   }
-  throw error; // Rethrow for frontend handling
+  throw error; 
 };
 
 class MovieDataService {
@@ -53,7 +53,7 @@ class MovieDataService {
   }
 
   async find(query, by) {
-    if (!query || !by) throw new Error("Query and field are required");
+    if (!query || !by) return { movies: [] };
     try {
       const res = await api.get(`?${by}=${query}`);
       return res.data;
@@ -85,9 +85,7 @@ class MovieDataService {
   async deleteReview(reviewId, userId) {
     if (!reviewId || !userId) throw new Error("Review ID and User ID are required");
     try {
-      const res = await api.delete("/reviews", {
-        data: { review_id: reviewId, user_id: userId },
-      });
+      const res = await api.delete("/reviews", { data: { review_id: reviewId, user_id: userId } });
       return res.data;
     } catch (error) {
       handleAxiosError(error, "deleteReview");
