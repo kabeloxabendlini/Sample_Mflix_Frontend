@@ -81,23 +81,17 @@ class MovieDataService {
   }
 
   // Delete a review
-  async deleteReview(reviewId, userId) {
-    try {
-      const res = await axios.delete(
-        `${process.env.REACT_APP_API_BASE_URL}/api/v1/reviews`,
-        {
-          data: {
-            review_id: reviewId,
-            user_id: userId,
-          },
-        }
-      );
-      return res.data;
-    } catch (error) {
-      console.error("Error deleting review:", error);
-      throw error;
-    }
+   async deleteReview(reviewId, userId) {
+  try {
+    const res = await api.delete("/reviews", {
+      data: { review_id: reviewId, user_id: userId },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    throw error;
   }
+}
 }
 
 // Export a single instance
