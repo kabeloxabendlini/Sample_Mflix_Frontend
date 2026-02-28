@@ -97,6 +97,104 @@ class MovieDataService {
 
 export default new MovieDataService();
 
+// import axios from "axios";
+
+// // Backend URL from environment, fallback to localhost for dev
+// const BASE_URL =
+//   process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:7000";
+
+// // Axios instance with timeout and credentials
+// const api = axios.create({
+//   baseURL: BASE_URL + "/api/v1/movies",
+//   withCredentials: true,
+//   timeout: 10000,
+// });
+
+// // Centralized error handling
+// const handleAxiosError = (error, context = "") => {
+//   if (error.response) {
+//     console.error(`[${context}] Server error:`, error.response.status, error.response.data);
+//   } else if (error.request) {
+//     console.error(`[${context}] Network error: No response received`, error.request);
+//   } else {
+//     console.error(`[${context}] Error:`, error.message);
+//   }
+//   throw error; 
+// };
+
+// class MovieDataService {
+//   async getAll() {
+//     try {
+//       const res = await api.get("/");
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, "getAll");
+//     }
+//   }
+
+//   async get(id) {
+//     if (!id) throw new Error("Movie ID is required");
+//     try {
+//       const res = await api.get(`/${id}`);
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, `get(${id})`);
+//     }
+//   }
+
+//   async getRatings() {
+//     try {
+//       const res = await api.get("/ratings");
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, "getRatings");
+//     }
+//   }
+
+//   async find(query, by) {
+//     if (!query || !by) return { movies: [] };
+//     try {
+//       const res = await api.get(`?${by}=${query}`);
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, `find(${by}=${query})`);
+//     }
+//   }
+
+//   async createReview(data) {
+//     if (!data?.movie_id) throw new Error("Movie ID is required for review");
+//     try {
+//       const res = await api.post(`/${data.movie_id}/reviews`, data);
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, "createReview");
+//     }
+//   }
+
+//   async updateReview(data) {
+//     if (!data?.movie_id) throw new Error("Movie ID is required for review update");
+//     try {
+//       const res = await api.put(`/${data.movie_id}/reviews`, data);
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, "updateReview");
+//     }
+//   }
+
+//   async deleteReview(reviewId, userId) {
+//     if (!reviewId || !userId) throw new Error("Review ID and User ID are required");
+//     try {
+//       const res = await api.delete("/reviews", { data: { review_id: reviewId, user_id: userId } });
+//       return res.data;
+//     } catch (error) {
+//       handleAxiosError(error, "deleteReview");
+//     }
+//   }
+// }
+
+// export default new MovieDataService();
+
+
 // frontend/src/services/MovieDataService.js
 // ----------------------------------------
 // Axios instance + service class for all movie-related API calls
