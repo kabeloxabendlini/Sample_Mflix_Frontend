@@ -1,37 +1,28 @@
-// Import axios for making HTTP requests to the backend API
+// MovieDataService.js
+// -------------------
+// Axios instance + service class for all movie-related API calls
+
 import axios from "axios";
 
-/**
- * Create a reusable axios instance
- * This sets a base URL so you don't have to repeat it in every request.
- * All requests from this instance will automatically prepend this URL.
- */
+// Create a single axios instance using environment variable
+// REACT_APP_API_BASE_URL must be set in your frontend .env
 const api = axios.create({
-  baseURL: "http://localhost:5000/api/v1/movies",
+  baseURL: process.env.REACT_APP_API_BASE_URL + "/api/v1/movies",
 });
 
-
-/**
- * Service class responsible for handling
- * all movie-related API communication.
- *
- * Keeps API logic separate from UI components
- * (Good separation of concerns / clean architecture)
- */
 class MovieDataService {
-
   /**
    * Fetch all movies
-   * GET http://localhost:5000/api/v1/movies/
+   * GET /api/v1/movies/
    */
   getAll() {
     return api.get("/");
   }
 
   /**
-   * Fetch a single movie by its ID
+   * Fetch a single movie by ID
+   * GET /api/v1/movies/:id
    * @param {string} id - Movie ID
-   * GET /:id
    */
   get(id) {
     return api.get(`/${id}`);
@@ -39,8 +30,7 @@ class MovieDataService {
 
   /**
    * Fetch all available movie ratings
-   * Example response: ["G", "PG", "PG-13", "R"]
-   * GET /ratings
+   * GET /api/v1/movies/ratings
    */
   getRatings() {
     return api.get("/ratings");
@@ -48,10 +38,8 @@ class MovieDataService {
 
   /**
    * Search for movies dynamically
-   * Example: find("Inception", "title")
-   * → GET ?title=Inception
-   *
-   * @param {string} query - Search value
+   * Example: find("Inception", "title") → GET /?title=Inception
+   * @param {string} query - Search term
    * @param {string} by - Field to search by (title, rated, etc.)
    */
   find(query, by) {
@@ -59,16 +47,9 @@ class MovieDataService {
   }
 
   /**
-   * Create a new review for a specific movie
-   * POST /:movie_id/reviews
-   *
-   * Expected data object:
-   * {
-   *   movie_id,
-   *   review,
-   *   name,
-   *   user_id
-   * }
+   * Create a new review for a movie
+   * POST /api/v1/movies/:movie_id/reviews
+   * @param {object} data - { movie_id, review, name, user_id }
    */
   createReview(data) {
     return api.post(`/${data.movie_id}/reviews`, data);
@@ -76,15 +57,8 @@ class MovieDataService {
 
   /**
    * Update an existing review
-   * PUT /:movie_id/reviews
-   *
-   * Expected data object:
-   * {
-   *   review_id,
-   *   movie_id,
-   *   review,
-   *   user_id
-   * }
+   * PUT /api/v1/movies/:movie_id/reviews
+   * @param {object} data - { review_id, movie_id, review, user_id }
    */
   updateReview(data) {
     return api.put(`/${data.movie_id}/reviews`, data);
@@ -92,11 +66,7 @@ class MovieDataService {
 
   /**
    * Delete a review
-   * DELETE /reviews
-   *
-   * axios allows sending a request body
-   * in DELETE using the "data" property.
-   *
+   * DELETE /api/v1/movies/reviews
    * @param {string} reviewId
    * @param {string} userId
    */
@@ -110,16 +80,6 @@ class MovieDataService {
   }
 }
 
-
-/**
- * Create a single instance of the service
- * This ensures consistent configuration
- * and avoids creating multiple axios instances
- */
+// Export a single instance
 const movieDataService = new MovieDataService();
-
-/**
- * Export the instance
- * So it can be imported anywhere in the app
- */
 export default movieDataService;
