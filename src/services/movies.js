@@ -1,100 +1,104 @@
 // MovieDataService.js
-// -------------------
-// Axios instance + service class for all movie-related API calls
-// Fully optimized for deployment with proper CORS and error handling
-
 import axios from "axios";
 
-// Create a single axios instance using environment variable
-// Make sure REACT_APP_API_BASE_URL is set in your frontend .env
+// Fallback backend URL if .env is missing (use localhost for dev)
+const BASE_URL =
+  process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:7000";
+
+// Axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL + "/api/v1/movies",
-  withCredentials: true, // required if backend uses credentials/cookies
-  timeout: 10000, // optional: 10s timeout for network requests
+  baseURL: BASE_URL + "/api/v1/movies",
+  withCredentials: true, // needed if backend uses cookies
+  timeout: 10000,        // 10s timeout
 });
 
+// Centralized error handler
+const handleAxiosError = (error, context = "") => {
+  if (error.response) {
+    // Server responded with a status outside 2xx
+    console.error(
+      `[${context}] Server error:`,
+      error.response.status,
+      error.response.data
+    );
+  } else if (error.request) {
+    // Request made but no response
+    console.error(`[${context}] Network error: No response received`, error.request);
+  } else {
+    // Other errors
+    console.error(`[${context}] Error:`, error.message);
+  }
+  throw error; // rethrow to let frontend handle it if needed
+};
+
 class MovieDataService {
-  // Fetch all movies
   async getAll() {
     try {
       const res = await api.get("/");
       return res.data;
     } catch (error) {
-      console.error("Error fetching all movies:", error);
-      throw error;
+      handleAxiosError(error, "getAll");
     }
   }
 
-  // Fetch a single movie by ID
   async get(id) {
     try {
       const res = await api.get(`/${id}`);
       return res.data;
     } catch (error) {
-      console.error(`Error fetching movie ${id}:`, error);
-      throw error;
+      handleAxiosError(error, `get(${id})`);
     }
   }
 
-  // Fetch all available movie ratings
   async getRatings() {
     try {
       const res = await api.get("/ratings");
       return res.data;
     } catch (error) {
-      console.error("Error fetching movie ratings:", error);
-      throw error;
+      handleAxiosError(error, "getRatings");
     }
   }
 
-  // Search for movies dynamically
   async find(query, by) {
     try {
       const res = await api.get(`?${by}=${query}`);
       return res.data;
     } catch (error) {
-      console.error(`Error searching movies by ${by} with query "${query}":`, error);
-      throw error;
+      handleAxiosError(error, `find(${by}=${query})`);
     }
   }
 
-  // Create a new review for a movie
   async createReview(data) {
     try {
       const res = await api.post(`/${data.movie_id}/reviews`, data);
       return res.data;
     } catch (error) {
-      console.error("Error creating review:", error);
-      throw error;
+      handleAxiosError(error, "createReview");
     }
   }
 
-  // Update an existing review
   async updateReview(data) {
     try {
       const res = await api.put(`/${data.movie_id}/reviews`, data);
       return res.data;
     } catch (error) {
-      console.error("Error updating review:", error);
-      throw error;
+      handleAxiosError(error, "updateReview");
     }
   }
 
-  // Delete a review
-   async deleteReview(reviewId, userId) {
-  try {
-    const res = await api.delete("/reviews", {
-      data: { review_id: reviewId, user_id: userId },
-    });
-    return res.data;
-  } catch (error) {
-    console.error("Error deleting review:", error);
-    throw error;
+  async deleteReview(reviewId, userId) {
+    try {
+      const res = await api.delete("/reviews", {
+        data: { review_id: reviewId, user_id: userId },
+      });
+      return res.data;
+    } catch (error) {
+      handleAxiosError(error, "deleteReview");
+    }
   }
 }
-}
 
-// Export a single instance
+// Export singleton
 const movieDataService = new MovieDataService();
 export default movieDataService;
 
