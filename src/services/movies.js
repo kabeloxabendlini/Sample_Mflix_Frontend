@@ -1,34 +1,26 @@
-// MovieDataService.js
 import axios from "axios";
 
-// Fallback backend URL if .env is missing (use localhost for dev)
+// Backend URL from environment, fallback to localhost for dev
 const BASE_URL =
   process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:7000";
 
-// Axios instance
+// Axios instance with timeout and credentials
 const api = axios.create({
   baseURL: BASE_URL + "/api/v1/movies",
-  withCredentials: true, // needed if backend uses cookies
-  timeout: 10000,        // 10s timeout
+  withCredentials: true, // use cookies if backend requires auth
+  timeout: 10000,        // 10-second timeout
 });
 
-// Centralized error handler
+// Centralized error handling
 const handleAxiosError = (error, context = "") => {
   if (error.response) {
-    // Server responded with a status outside 2xx
-    console.error(
-      `[${context}] Server error:`,
-      error.response.status,
-      error.response.data
-    );
+    console.error(`[${context}] Server error:`, error.response.status, error.response.data);
   } else if (error.request) {
-    // Request made but no response
     console.error(`[${context}] Network error: No response received`, error.request);
   } else {
-    // Other errors
     console.error(`[${context}] Error:`, error.message);
   }
-  throw error; // rethrow to let frontend handle it if needed
+  throw error; // Rethrow for frontend handling
 };
 
 class MovieDataService {
@@ -42,6 +34,7 @@ class MovieDataService {
   }
 
   async get(id) {
+    if (!id) throw new Error("Movie ID is required");
     try {
       const res = await api.get(`/${id}`);
       return res.data;
@@ -60,6 +53,7 @@ class MovieDataService {
   }
 
   async find(query, by) {
+    if (!query || !by) throw new Error("Query and field are required");
     try {
       const res = await api.get(`?${by}=${query}`);
       return res.data;
@@ -69,6 +63,7 @@ class MovieDataService {
   }
 
   async createReview(data) {
+    if (!data?.movie_id) throw new Error("Movie ID is required for review");
     try {
       const res = await api.post(`/${data.movie_id}/reviews`, data);
       return res.data;
@@ -78,6 +73,7 @@ class MovieDataService {
   }
 
   async updateReview(data) {
+    if (!data?.movie_id) throw new Error("Movie ID is required for review update");
     try {
       const res = await api.put(`/${data.movie_id}/reviews`, data);
       return res.data;
@@ -87,6 +83,7 @@ class MovieDataService {
   }
 
   async deleteReview(reviewId, userId) {
+    if (!reviewId || !userId) throw new Error("Review ID and User ID are required");
     try {
       const res = await api.delete("/reviews", {
         data: { review_id: reviewId, user_id: userId },
@@ -98,9 +95,7 @@ class MovieDataService {
   }
 }
 
-// Export singleton
-const movieDataService = new MovieDataService();
-export default movieDataService;
+export default new MovieDataService();
 
 // frontend/src/services/MovieDataService.js
 // ----------------------------------------

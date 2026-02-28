@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-b
 import { Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
+// Fallback image for missing posters
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
   encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="300" height="450">
@@ -30,9 +31,8 @@ const MoviesList = () => {
     setError("");
     try {
       const res = await MovieDataService.getAll();
-      setMovies(res.movies || []);
+      setMovies(res?.movies || []);
     } catch (e) {
-      console.error(e);
       setError("Failed to fetch movies.");
     } finally {
       setLoading(false);
@@ -44,7 +44,6 @@ const MoviesList = () => {
       const res = await MovieDataService.getRatings();
       setRatings(["All Ratings", ...(res || [])]);
     } catch (e) {
-      console.error(e);
       setError("Failed to fetch ratings.");
     }
   };
@@ -54,22 +53,17 @@ const MoviesList = () => {
     setError("");
     try {
       const res = await MovieDataService.find(query, by);
-      setMovies(res.movies || []);
+      setMovies(res?.movies || []);
     } catch (e) {
-      console.error(e);
       setError(`Failed to search movies by ${by}.`);
     } finally {
       setLoading(false);
     }
   };
 
-  const findByTitle = () => find(searchTitle, "title");
+  const findByTitle = () => searchTitle && find(searchTitle, "title");
   const findByRating = () => {
-    if (searchRating === "All Ratings") {
-      retrieveMovies();
-    } else {
-      find(searchRating, "rated");
-    }
+    searchRating === "All Ratings" ? retrieveMovies() : find(searchRating, "rated");
   };
 
   const handleImageError = (e) => {
@@ -90,7 +84,9 @@ const MoviesList = () => {
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
             />
-            <Button className="mt-2" onClick={findByTitle} disabled={loading}>Search by Title</Button>
+            <Button className="mt-2" onClick={findByTitle} disabled={loading}>
+              Search by Title
+            </Button>
           </Col>
           <Col>
             <Form.Select
@@ -101,7 +97,9 @@ const MoviesList = () => {
                 <option key={i} value={r}>{r}</option>
               ))}
             </Form.Select>
-            <Button className="mt-2" onClick={findByRating} disabled={loading}>Filter by Rating</Button>
+            <Button className="mt-2" onClick={findByRating} disabled={loading}>
+              Filter by Rating
+            </Button>
           </Col>
         </Row>
       </Form>
