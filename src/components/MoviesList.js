@@ -30,7 +30,7 @@ const MoviesList = () => {
     setError("");
     try {
       const res = await MovieDataService.getAll();
-      setMovies(res?.movies || []);
+      setMovies(res?.movies?.filter(m => m?._id) || []);
     } catch (e) {
       setError("Failed to fetch movies.");
     } finally {
@@ -53,7 +53,7 @@ const MoviesList = () => {
     setError("");
     try {
       const res = await MovieDataService.find(query, by);
-      setMovies(res?.movies || []);
+      setMovies(res?.movies?.filter(m => m?._id) || []);
     } catch (e) {
       setError(`Failed to search movies by ${by}.`);
     } finally {
@@ -61,8 +61,10 @@ const MoviesList = () => {
     }
   };
 
-  const findByTitle = () => searchTitle && find(searchTitle, "title");
-  const findByRating = () => searchRating === "All Ratings" ? retrieveMovies() : find(searchRating, "rated");
+  const findByTitle = () => find(searchTitle, "title");
+  const findByRating = () => {
+    searchRating === "All Ratings" ? retrieveMovies() : find(searchRating, "rated");
+  };
 
   const handleImageError = (e) => {
     e.target.onerror = null;
@@ -82,13 +84,19 @@ const MoviesList = () => {
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
             />
-            <Button className="mt-2" onClick={findByTitle} disabled={loading}>Search by Title</Button>
+            <Button className="mt-2" onClick={findByTitle} disabled={loading}>
+              Search by Title
+            </Button>
           </Col>
           <Col>
             <Form.Select value={searchRating} onChange={(e) => setSearchRating(e.target.value)}>
-              {ratings.map((r, i) => <option key={i} value={r}>{r}</option>)}
+              {ratings.map((r, i) => (
+                <option key={i} value={r}>{r}</option>
+              ))}
             </Form.Select>
-            <Button className="mt-2" onClick={findByRating} disabled={loading}>Filter by Rating</Button>
+            <Button className="mt-2" onClick={findByRating} disabled={loading}>
+              Filter by Rating
+            </Button>
           </Col>
         </Row>
       </Form>
@@ -97,8 +105,8 @@ const MoviesList = () => {
       {loading && <Spinner animation="border" variant="primary" />}
 
       <Row>
-        {movies.length > 0 ? movies.map(movie => (
-          movie._id ? (
+        {movies.length > 0 ? (
+          movies.map(movie => (
             <Col key={movie._id} md={3} className="mb-4">
               <Card>
                 <Card.Img
@@ -109,12 +117,14 @@ const MoviesList = () => {
                 <Card.Body>
                   <Card.Title>{movie.title}</Card.Title>
                   <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
-                  <Link to={`/movies/${movie._id}`}>View Reviews</Link>
+                  {movie._id ? <Link to={`/movies/${movie._id}`}>View Reviews</Link> : <span>No ID</span>}
                 </Card.Body>
               </Card>
             </Col>
-          ) : null
-        )) : !loading && <p>No movies found.</p>}
+          ))
+        ) : !loading ? (
+          <p>No movies found.</p>
+        ) : null}
       </Row>
     </Container>
   );

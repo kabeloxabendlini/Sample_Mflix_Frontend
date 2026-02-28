@@ -1,17 +1,14 @@
 import axios from "axios";
 
-// Backend URL from environment, fallback to localhost for dev
 const BASE_URL =
   process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:7000";
 
-// Axios instance with timeout and credentials
 const api = axios.create({
   baseURL: BASE_URL + "/api/v1/movies",
   withCredentials: true,
   timeout: 10000,
 });
 
-// Centralized error handling
 const handleAxiosError = (error, context = "") => {
   if (error.response) {
     console.error(`[${context}] Server error:`, error.response.status, error.response.data);
@@ -20,7 +17,7 @@ const handleAxiosError = (error, context = "") => {
   } else {
     console.error(`[${context}] Error:`, error.message);
   }
-  throw error; 
+  throw error;
 };
 
 class MovieDataService {
@@ -53,7 +50,7 @@ class MovieDataService {
   }
 
   async find(query, by) {
-    if (!query || !by) return { movies: [] };
+    if (!query || !by) throw new Error("Query and field are required");
     try {
       const res = await api.get(`?${by}=${query}`);
       return res.data;
