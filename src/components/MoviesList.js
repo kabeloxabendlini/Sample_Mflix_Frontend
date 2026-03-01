@@ -110,7 +110,11 @@ const MoviesList = () => {
             <Col key={movie._id} md={3} className="mb-4">
               <Card>
                 <Card.Img
-                  src={movie.poster || FALLBACK_IMAGE}
+                  src={
+                    movie.poster && movie.poster.startsWith("http")
+                      ? movie.poster
+                      : FALLBACK_IMAGE
+                  }
                   onError={handleImageError}
                   style={{ height: "300px", objectFit: "cover" }}
                 />

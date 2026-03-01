@@ -19,19 +19,23 @@ const Movie = ({ user }) => {
   const [error, setError] = useState("");
 
   const getMovie = async (movieId) => {
+    if (!movieId || movieId === "null") return;
+
     setLoading(true);
     setError("");
+
     try {
-      const res = await MovieDataService.get(movieId);
-      const data = res?.data || {};
+      const data = await MovieDataService.get(movieId);
+
       setMovie({
-        id: data._id ?? null,
+        id: data._id?.toString() ?? null,
         title: data.title ?? "",
         plot: data.plot ?? "",
         rated: data.rated ?? "",
         poster: data.poster ?? "",
         reviews: Array.isArray(data.reviews) ? data.reviews : [],
       });
+
     } catch (e) {
       console.error(e);
       setError("Failed to load movie details.");
@@ -41,7 +45,13 @@ const Movie = ({ user }) => {
   };
 
   useEffect(() => {
-    if (id) getMovie(id);
+    if (!id || id === "null" || id === "undefined") {
+      setLoading(false);
+      setError("Invalid movie ID.");
+      return;
+    }
+
+    getMovie(id);
   }, [id]);
 
   const deleteReview = async (reviewId, index) => {
@@ -70,7 +80,11 @@ const Movie = ({ user }) => {
     <Container className="mt-4">
       <Row>
         <Col md={4}>
-          <Image src={movie.poster || FALLBACK_IMAGE} fluid onError={handleImageError} />
+          <Image src={
+            movie.poster && movie.poster.startsWith("http")
+              ? movie.poster
+              : FALLBACK_IMAGE
+          } fluid onError={handleImageError} />
         </Col>
         <Col md={8}>
           <Card>
@@ -78,7 +92,8 @@ const Movie = ({ user }) => {
             <Card.Body>
               <Card.Text>{movie.plot}</Card.Text>
               <Card.Text><strong>Rating:</strong> {movie.rated || "Not Rated"}</Card.Text>
-              {user && <Link to={`/movies/${movie.id}/review`}>Add Review</Link>}
+              {user && movie.id && (
+                <Link to={`/movies/${movie.id}/review`}>Add Review</Link>)}
             </Card.Body>
           </Card>
 
@@ -94,14 +109,12 @@ const Movie = ({ user }) => {
                       {user && user.id === review.user_id && (
                         <Row>
                           <Col>
-                            <Link
-                              to={{
-                                pathname: `/movies/${movie.id}/review`,
-                                state: { currentReview: review },
-                              }}
-                            >
-                              Edit
-                            </Link>
+                            <Link 
+                            to={
+                              `/movies/${movie.id}/review`
+                            }>
+                              Edit Review
+                              </Link>
                           </Col>
                           <Col>
                             <Button variant="link" onClick={() => deleteReview(review._id, index)}>Delete</Button>
