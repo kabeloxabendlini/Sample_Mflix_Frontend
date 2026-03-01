@@ -27,42 +27,42 @@ const AddReview = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [loadingMovie, setLoadingMovie] = useState(true);
 
-  if (!user) {
-    return <Alert variant="warning">Please log in to add or edit a review.</Alert>;
-  }
-
-  const fetchMovie = async () => {
-    setLoadingMovie(true);
-    try {
-      const data = await MovieDataService.get(movieId);
-      const movieData = {
-        id: data._id,
-        title: data.title,
-        poster: data.poster,
-        plot: data.plot,
-        rated: data.rated,
-        release_year: data.release_year,
-        runtime: data.runtime,
-        genre: data.genre,
-      };
-      setMovie(movieData);
-
-      // Pre-fill review template if creating new review
-      if (!editing && movieData.title) {
-        setReview(`I watched this ${movieData.genre || ""} movie released in ${movieData.release_year || ""}. `);
-      }
-
-    } catch (e) {
-      console.error(e);
-      setError("Failed to load movie info.");
-    } finally {
-      setLoadingMovie(false);
-    }
-  };
-
+  // Fetch movie info
   useEffect(() => {
+    const fetchMovie = async () => {
+      setLoadingMovie(true);
+      try {
+        const data = await MovieDataService.get(movieId);
+        setMovie({
+          id: data._id,
+          title: data.title,
+          poster: data.poster,
+          plot: data.plot,
+          rated: data.rated,
+          release_year: data.release_year,
+          runtime: data.runtime,
+          genre: data.genre,
+        });
+      } catch (e) {
+        console.error(e);
+        setError("Failed to load movie info.");
+      } finally {
+        setLoadingMovie(false);
+      }
+    };
     fetchMovie();
   }, [movieId]);
+
+  // Pre-fill review only if creating new review
+  useEffect(() => {
+    if (!editing && movie) {
+      setReview((prev) =>
+        prev.trim() === "" 
+          ? `I watched this ${movie.genre || ""} movie released in ${movie.release_year || ""}. ` 
+          : prev
+      );
+    }
+  }, [movie, editing]);
 
   const handleImageError = (e) => {
     e.target.onerror = null;
@@ -104,6 +104,8 @@ const AddReview = ({ user }) => {
 
   return (
     <div className="mt-4">
+      {!user && <Alert variant="warning">Please log in to add or edit a review.</Alert>}
+
       {movie && (
         <Card className="mb-3">
           <Card.Body className="d-flex align-items-start">
@@ -128,13 +130,13 @@ const AddReview = ({ user }) => {
 
       {submitted && <Alert variant="success">Review submitted successfully!</Alert>}
 
-      {!submitted && (
+      {!submitted && user && (
         <Form>
           <Form.Group className="mb-3">
             <Form.Label>{editing ? "Edit Review" : "Create Review"}</Form.Label>
             <Form.Control
               as="textarea"
-              rows={5}                   // multi-line
+              rows={5}
               required
               value={review}
               onChange={(e) => setReview(e.target.value)}
