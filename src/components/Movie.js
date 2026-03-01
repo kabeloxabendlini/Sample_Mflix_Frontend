@@ -26,7 +26,6 @@ const Movie = ({ user }) => {
 
     try {
       const data = await MovieDataService.get(movieId);
-
       setMovie({
         id: data._id?.toString() ?? null,
         title: data.title ?? "",
@@ -35,7 +34,6 @@ const Movie = ({ user }) => {
         poster: data.poster ?? "",
         reviews: Array.isArray(data.reviews) ? data.reviews : [],
       });
-
     } catch (e) {
       console.error(e);
       setError("Failed to load movie details.");
@@ -50,17 +48,18 @@ const Movie = ({ user }) => {
       setError("Invalid movie ID.");
       return;
     }
-
     getMovie(id);
   }, [id]);
 
-  const deleteReview = async (reviewId, index) => {
+  const deleteReview = async (reviewId) => {
     try {
-      await MovieDataService.deleteReview(reviewId, user.id);
-      setMovie((prev) => ({
-        ...prev,
-        reviews: prev.reviews.filter((_, i) => i !== index),
-      }));
+      await MovieDataService.deleteReview(
+        movie.id,
+        reviewId,
+        user.id);
+
+      getMovie(movie.id); // refresh movie details after deletion
+
     } catch (e) {
       console.error(e);
       setError("Failed to delete review.");
@@ -72,19 +71,24 @@ const Movie = ({ user }) => {
     e.target.src = FALLBACK_IMAGE;
   };
 
-  if (loading) return <Spinner animation="border" variant="primary" />;
-  if (error) return <Alert variant="danger">{error}</Alert>;
-  if (!movie) return <p>Movie not found.</p>;
+  if (loading) return
+    <Spinner animation="border" variant="primary" />;
+
+  if (error) return
+    <Alert variant="danger">{error}</Alert>;
+
+  if (!movie) return
+    <p>Movie not found.</p>;
 
   return (
     <Container className="mt-4">
       <Row>
         <Col md={4}>
-          <Image src={
-            movie.poster && movie.poster.startsWith("http")
-              ? movie.poster
-              : FALLBACK_IMAGE
-          } fluid onError={handleImageError} />
+          <Image
+            src={movie.poster && movie.poster.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
+            fluid
+            onError={handleImageError}
+          />
         </Col>
         <Col md={8}>
           <Card>
@@ -93,7 +97,8 @@ const Movie = ({ user }) => {
               <Card.Text>{movie.plot}</Card.Text>
               <Card.Text><strong>Rating:</strong> {movie.rated || "Not Rated"}</Card.Text>
               {user && movie.id && (
-                <Link to={`/movies/${movie.id}/review`}>Add Review</Link>)}
+                <Link to={`/movies/${movie.id}/review`}>Add Review</Link>
+              )}
             </Card.Body>
           </Card>
 
@@ -109,15 +114,19 @@ const Movie = ({ user }) => {
                       {user && user.id === review.user_id && (
                         <Row>
                           <Col>
-                            <Link 
-                            to={
-                              `/movies/${movie.id}/review`
-                            }>
-                              Edit Review
-                              </Link>
+                            <Link to={`/movies/${movie.id}/review`}>Edit Review</Link>
                           </Col>
                           <Col>
-                            <Button variant="link" onClick={() => deleteReview(review._id, index)}>Delete</Button>
+                            <Button
+                              variant="link"
+                              onClick={() => 
+                                deleteReview(review._id
+                                  ? review._id.toString()
+                                  : null
+                                )}
+                            >
+                              Delete
+                            </Button>
                           </Col>
                         </Row>
                       )}

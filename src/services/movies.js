@@ -82,10 +82,12 @@ class MovieDataService {
     }
   }
 
-  async deleteReview(reviewId, userId) {
-    if (!reviewId || !userId) throw new Error("Review ID and User ID are required");
+  async deleteReview(movieId, reviewId, userId) {
+    if (!movieId || !reviewId || !userId)
+      throw new Error("Movie ID, Review ID and User ID are required");
+
     try {
-      const res = await api.delete("/reviews", {
+      const res = await api.delete(`/${movieId}/reviews`, {
         data: { review_id: reviewId, user_id: userId },
       });
       return res.data;
@@ -119,7 +121,7 @@ export default new MovieDataService();
 //   } else {
 //     console.error(`[${context}] Error:`, error.message);
 //   }
-//   throw error; 
+//   throw error;
 // };
 
 // class MovieDataService {
