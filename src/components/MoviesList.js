@@ -108,7 +108,20 @@ const MoviesList = () => {
         {movies.length > 0 ? (
           movies.map(movie => (
             <Col key={movie._id} md={3} className="mb-4">
-              <Card className="h-100">
+              <Card
+                className="h-100"
+                style={{
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                  e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
+                }}
+              >
                 {/* Image wrapper to control cropping */}
                 <div style={{ height: "400px", overflow: "hidden" }}>
                   <Card.Img
@@ -120,8 +133,31 @@ const MoviesList = () => {
                 <Card.Body className="d-flex flex-column">
                   <Card.Title>{movie.title}</Card.Title>
                   <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
+
                   {movie._id ? (
-                    <Link to={`/movies/${movie._id}`} className="mt-auto">View Reviews</Link>
+                    <Link to={`/movies/${movie._id}`} className="mt-auto">
+                      <Button
+                        className="w-100 fw-bold"
+                        style={{
+                          padding: "0.75rem 0",
+                          fontSize: "1rem",
+                          background: "linear-gradient(135deg, #4e9af1, #1c5ed6)",
+                          border: "none",
+                          color: "white",
+                          transition: "all 0.3s ease-in-out",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.3)";
+                          e.currentTarget.style.transform = "scale(1.05)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.boxShadow = "none";
+                          e.currentTarget.style.transform = "scale(1)";
+                        }}
+                      >
+                        View Reviews
+                      </Button>
+                    </Link>
                   ) : (
                     <span>No ID</span>
                   )}
