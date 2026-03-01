@@ -42,3 +42,6 @@ Thumbs.db
 .pnp/
 .pnp.js
 .cache/
+
+# Optional: Window
+%APPDATA%
