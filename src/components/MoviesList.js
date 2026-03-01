@@ -108,20 +108,23 @@ const MoviesList = () => {
         {movies.length > 0 ? (
           movies.map(movie => (
             <Col key={movie._id} md={3} className="mb-4">
-              <Card>
-                <Card.Img
-                  src={
-                    movie.poster && movie.poster.startsWith("http")
-                      ? movie.poster
-                      : FALLBACK_IMAGE
-                  }
-                  onError={handleImageError}
-                  style={{ height: "300px", objectFit: "cover" }}
-                />
-                <Card.Body>
+              <Card className="h-100">
+                {/* Image wrapper to control cropping */}
+                <div style={{ height: "400px", overflow: "hidden" }}>
+                  <Card.Img
+                    src={movie.poster && movie.poster.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
+                    onError={handleImageError}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+                <Card.Body className="d-flex flex-column">
                   <Card.Title>{movie.title}</Card.Title>
                   <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
-                  {movie._id ? <Link to={`/movies/${movie._id}`}>View Reviews</Link> : <span>No ID</span>}
+                  {movie._id ? (
+                    <Link to={`/movies/${movie._id}`} className="mt-auto">View Reviews</Link>
+                  ) : (
+                    <span>No ID</span>
+                  )}
                 </Card.Body>
               </Card>
             </Col>
