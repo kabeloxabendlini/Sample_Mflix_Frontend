@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
+import { ButtonGroup } from "react-bootstrap"; // add this import at top
+// Inside the return() where the search/filter form is:
 
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
   encodeURIComponent(`
@@ -75,28 +77,42 @@ const MoviesList = () => {
     <Container>
       <h2 className="mt-4">Movies</h2>
 
-      <Form className="mb-3">
-        <Row>
-          <Col>
+      <Form className="mb-4">
+
+
+        <Row className="align-items-end mb-4">
+          <Col xs={12} md={6} className="mb-2">
+            <Form.Label className="fw-bold">Search by Title</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Search by title"
+              placeholder="Enter movie title..."
               value={searchTitle}
               onChange={(e) => setSearchTitle(e.target.value)}
             />
-            <Button className="mt-2" onClick={findByTitle} disabled={loading}>
-              Search by Title
+            <Button
+              variant="primary"
+              className="mt-2 w-100"
+              onClick={findByTitle}
+              disabled={loading}
+            >
+              {loading ? <Spinner as="span" animation="border" size="sm" /> : "Search"}
             </Button>
           </Col>
-          <Col>
-            <Form.Select value={searchRating} onChange={(e) => setSearchRating(e.target.value)}>
+
+          <Col xs={12} md={6} className="mb-2">
+            <Form.Label className="fw-bold">Filter by Rating</Form.Label>
+            <div className="d-flex flex-wrap gap-2 mt-1">
               {ratings.map((r, i) => (
-                <option key={i} value={r}>{r}</option>
+                <Button
+                  key={i}
+                  variant={r === searchRating ? "success" : "outline-success"}
+                  size="sm"
+                  onClick={() => { setSearchRating(r); findByRating(); }}
+                >
+                  {r}
+                </Button>
               ))}
-            </Form.Select>
-            <Button className="mt-2" onClick={findByRating} disabled={loading}>
-              Filter by Rating
-            </Button>
+            </div>
           </Col>
         </Row>
       </Form>
@@ -107,57 +123,30 @@ const MoviesList = () => {
       <Row>
         {movies.length > 0 ? (
           movies.map(movie => (
-            <Col key={movie._id} md={3} className="mb-4">
-              <Card
-                className="h-100"
-                style={{
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "translateY(-5px)";
-                  e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "0 2px 6px rgba(0,0,0,0.1)";
-                }}
-              >
-                {/* Image wrapper to control cropping */}
-                <div style={{ height: "400px", overflow: "hidden" }}>
+            <Col key={movie._id} xs={12} sm={6} md={4} lg={3} className="mb-4">
+              <Card className="h-100 movie-card" style={{ transition: "transform 0.2s, box-shadow 0.2s" }}>
+                <div style={{ position: "relative", paddingTop: "150%", overflow: "hidden" }}>
                   <Card.Img
                     src={movie.poster && movie.poster.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
                     onError={handleImageError}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 </div>
+
                 <Card.Body className="d-flex flex-column">
                   <Card.Title>{movie.title}</Card.Title>
+                  {movie.genre && <Card.Text><span className="badge bg-secondary">{movie.genre}</span></Card.Text>}
                   <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
 
                   {movie._id ? (
-                    <Link to={`/movies/${movie._id}`} className="mt-auto">
-                      <Button
-                        className="w-100 fw-bold"
-                        style={{
-                          padding: "0.75rem 0",
-                          fontSize: "1rem",
-                          background: "linear-gradient(135deg, #4e9af1, #1c5ed6)",
-                          border: "none",
-                          color: "white",
-                          transition: "all 0.3s ease-in-out",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.3)";
-                          e.currentTarget.style.transform = "scale(1.05)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.boxShadow = "none";
-                          e.currentTarget.style.transform = "scale(1)";
-                        }}
-                      >
-                        View Reviews
-                      </Button>
-                    </Link>
+                    <Button
+                      as={Link}
+                      to={`/movies/${movie._id}`}
+                      variant="info"
+                      className="mt-auto"
+                    >
+                      View Reviews
+                    </Button>
                   ) : (
                     <span>No ID</span>
                   )}
@@ -169,6 +158,14 @@ const MoviesList = () => {
           <p>No movies found.</p>
         ) : null}
       </Row>
+
+      <style>{`
+        .movie-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+      `}
+      </style>
     </Container>
   );
 };
