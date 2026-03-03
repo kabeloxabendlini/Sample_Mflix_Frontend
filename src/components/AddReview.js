@@ -27,7 +27,6 @@ const AddReview = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [loadingMovie, setLoadingMovie] = useState(true);
 
-  // Fetch movie info
   useEffect(() => {
     const fetchMovie = async () => {
       setLoadingMovie(true);
@@ -53,7 +52,6 @@ const AddReview = ({ user }) => {
     fetchMovie();
   }, [movieId]);
 
-  // Pre-fill review only if creating new review
   useEffect(() => {
     if (!editing && movie) {
       setReview(prev =>
@@ -74,8 +72,7 @@ const AddReview = ({ user }) => {
       setError("Review cannot be empty.");
       return;
     }
-
-    if (!user || !user.id || !user.name) {
+    if (!user?.id || !user?.name) {
       setError("You must be logged in to submit a review.");
       return;
     }
@@ -90,7 +87,6 @@ const AddReview = ({ user }) => {
         name: user.name,
         text: review.trim(),
       };
-
       if (editing) data.review_id = currentReview._id;
 
       await (editing
@@ -99,7 +95,6 @@ const AddReview = ({ user }) => {
 
       setSubmitted(true);
       setTimeout(() => navigate(`/movies/${movieId}`), 1000);
-
     } catch (e) {
       console.error(e);
       setError("Failed to save review. Please try again.");
@@ -118,7 +113,7 @@ const AddReview = ({ user }) => {
         <Card className="mb-3">
           <Card.Body className="d-flex align-items-start">
             <Image
-              src={movie.poster && movie.poster.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
+              src={movie.poster?.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
               onError={handleImageError}
               style={{ width: "100px", height: "150px", objectFit: "cover", marginRight: "1rem" }}
             />
