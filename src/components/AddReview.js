@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Alert, Spinner, Card, Image } from "react-bootstrap";
-import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
@@ -18,6 +18,7 @@ const AddReview = ({ user }) => {
   const navigate = useNavigate();
 
   const currentReview = location.state?.currentReview || null;
+  const onReviewSaved = location.state?.onReviewSaved;
   const editing = Boolean(currentReview?._id);
 
   const [movie, setMovie] = useState(null);
@@ -52,16 +53,6 @@ const AddReview = ({ user }) => {
     fetchMovie();
   }, [movieId]);
 
-  useEffect(() => {
-    if (!editing && movie) {
-      setReview(prev =>
-        prev.trim() === ""
-          ? `I watched this ${movie.genre || ""} movie released in ${movie.release_year || ""}. `
-          : prev
-      );
-    }
-  }, [movie, editing]);
-
   const handleImageError = (e) => {
     e.target.onerror = null;
     e.target.src = FALLBACK_IMAGE;
@@ -89,12 +80,29 @@ const AddReview = ({ user }) => {
       };
       if (editing) data.review_id = currentReview._id;
 
-      await (editing
-        ? MovieDataService.updateReview(data)
-        : MovieDataService.createReview(data));
+      const savedReview = editing
+        ? await MovieDataService.updateReview({
+            movie_id: movieId,
+            review_id: currentReview._id,
+            user_id: user.id,
+            text: review.trim(),
+          })
+        : await MovieDataService.createReview(data);
+
+      // Prepare object for MovieDetails
+      const reviewObj = {
+        _id: editing ? currentReview._id : savedReview.review_id,
+        user_id: user.id,
+        name: user.name,
+        review: review.trim(),
+        date: new Date().toISOString(),
+      };
+
+      // Call callback to update parent
+      if (onReviewSaved) onReviewSaved(reviewObj);
 
       setSubmitted(true);
-      setTimeout(() => navigate(`/movies/${movieId}`), 1000);
+      setTimeout(() => navigate(`/movies/${movieId}`), 500);
     } catch (e) {
       console.error(e);
       setError("Failed to save review. Please try again.");
@@ -155,9 +163,9 @@ const AddReview = ({ user }) => {
           >
             {loading ? <><Spinner as="span" animation="border" size="sm" /> Saving...</> : "Submit"}
           </Button>{" "}
-          <Link to={`/movies/${movieId}`}>
-            <Button variant="secondary" disabled={loading}>Cancel</Button>
-          </Link>
+          <Button variant="secondary" onClick={() => navigate(-1)} disabled={loading}>
+            Cancel
+          </Button>
         </Form>
       )}
     </div>

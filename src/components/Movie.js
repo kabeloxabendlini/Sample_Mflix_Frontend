@@ -18,42 +18,45 @@ const Movie = ({ user }) => {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const getMovie = async (movieId) => {
-    if (!movieId) return;
-    setLoading(true);
-    setError("");
-    try {
-      const data = await MovieDataService.get(movieId);
-      setMovie({
-        id: data._id,
-        title: data.title,
-        plot: data.plot,
-        rated: data.rated,
-        poster: data.poster,
-        reviews: data.reviews || [],
-      });
-    } catch (e) {
-      console.error(e);
-      setError("Failed to load movie details.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    getMovie(id);
+    const getMovie = async () => {
+      if (!id) return setError("Invalid movie ID");
+      setLoading(true);
+      try {
+        const data = await MovieDataService.get(id);
+        setMovie({
+          ...data,
+          id: data._id || data.id,
+          reviews: Array.isArray(data.reviews) ? data.reviews : [],
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load movie details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMovie();
   }, [id]);
 
-  const deleteReview = async (reviewId) => {
+  const handleDelete = async (reviewId) => {
     if (!user) return;
     if (!window.confirm("Are you sure you want to delete this review?")) return;
+
     try {
+      setActionLoading(true);
       await MovieDataService.deleteReview(movie.id, reviewId, user.id);
-      getMovie(movie.id); // refresh after delete
-    } catch (e) {
-      console.error(e);
+      setMovie((prev) => ({
+        ...prev,
+        reviews: prev.reviews.filter((r) => r._id !== reviewId),
+      }));
+    } catch (err) {
+      console.error(err);
       setError("Failed to delete review.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -64,10 +67,14 @@ const Movie = ({ user }) => {
 
   if (loading) return <Spinner animation="border" variant="primary" />;
   if (error) return <Alert variant="danger">{error}</Alert>;
-  if (!movie) return <p>Movie not found.</p>;
+  if (!movie) return <Alert variant="warning">Movie not found.</Alert>;
 
   return (
     <Container className="mt-4">
+      <Button variant="secondary" className="mb-3" onClick={() => navigate(-1)}>
+        ← Back
+      </Button>
+
       <Row>
         <Col md={4}>
           <Image
@@ -77,49 +84,56 @@ const Movie = ({ user }) => {
           />
         </Col>
         <Col md={8}>
-          <Card>
-            <Card.Header as="h5">{movie.title}</Card.Header>
-            <Card.Body>
-              <Card.Text>{movie.plot}</Card.Text>
-              <Card.Text><strong>Rating:</strong> {movie.rated || "Not Rated"}</Card.Text>
-              {user && movie.id && (
-                <Link to={`/movies/${movie.id}/review`}>Add Review</Link>
-              )}
-            </Card.Body>
-          </Card>
+          <h2>{movie.title}</h2>
+          <p>{movie.plot}</p>
+          <p>
+            <strong>Rating:</strong> {movie.rated || "N/A"} <br />
+            {movie.genre && <span><strong>Genre:</strong> {movie.genre} <br /></span>}
+            {movie.release_year && <span><strong>Year:</strong> {movie.release_year} <br /></span>}
+            {movie.runtime && <span><strong>Runtime:</strong> {movie.runtime} min</span>}
+          </p>
 
-          <h2 className="mt-4">Reviews</h2>
-          {movie.reviews.length > 0 ? (
-            <ListGroup className="mt-3">
-              {movie.reviews.map((review, index) => (
-                <ListGroup.Item key={review._id || index}>
-                  <Card>
-                    <Card.Body>
-                      <Card.Title>{review.name} reviewed on {new Date(review.date).toLocaleString()}</Card.Title>
-                      <Card.Text>{review.review}</Card.Text>
-                      {user && user.id === review.user_id && (
-                        <Row>
-                          <Col>
-                            <Link to={`/movies/${movie.id}/review`} state={{ currentReview: review }}>Edit Review</Link>
-                          </Col>
-                          <Col>
-                            <Button
-                              variant="link"
-                              onClick={() => deleteReview(review._id)}
-                            >
-                              Delete
-                            </Button>
-                          </Col>
-                        </Row>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          ) : <p>No reviews yet.</p>}
+          {user && (
+            <Link to={`/movies/${movie.id}/review`}>
+              <Button variant="info" className="mb-3">Add Review</Button>
+            </Link>
+          )}
         </Col>
       </Row>
+
+      <h4 className="mt-4">Reviews</h4>
+      {!user && <Alert variant="info">Log in to edit or delete reviews.</Alert>}
+      {movie.reviews.length === 0 && <p>No reviews yet.</p>}
+
+      {movie.reviews.map((r) => (
+        <Card key={r._id} className="mb-3">
+          <Card.Body>
+            <Card.Title>{r.name}</Card.Title>
+            <Card.Text>{r.review}</Card.Text>
+            <Card.Text>
+              <small className="text-muted">
+                {r.date ? new Date(r.date).toLocaleString() : "Unknown date"}
+              </small>
+            </Card.Text>
+
+            {user && user.id === r.user_id && (
+              <div className="d-flex gap-2">
+                <Link to={`/movies/${movie.id}/review`} state={{ currentReview: r }}>
+                  <Button variant="warning" size="sm">Edit</Button>
+                </Link>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => handleDelete(r._id)}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      ))}
     </Container>
   );
 };

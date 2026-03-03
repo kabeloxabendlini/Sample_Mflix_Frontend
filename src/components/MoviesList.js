@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Form, Spinner, Alert } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
-import { ButtonGroup } from "react-bootstrap"; // add this import at top
-// Inside the return() where the search/filter form is:
 
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
   encodeURIComponent(`
@@ -74,11 +72,10 @@ const MoviesList = () => {
   };
 
   return (
-    <Container>
-      <h2 className="mt-4">Movies</h2>
+    <Container className="mt-4">
+      <h2>Movies</h2>
 
       <Form className="mb-4">
-
         <Row className="align-items-end mb-4">
           <Col xs={12} md={6} className="mb-2">
             <Form.Label className="fw-bold">Search by Title</Form.Label>
@@ -126,28 +123,26 @@ const MoviesList = () => {
               <Card className="h-100 movie-card" style={{ transition: "transform 0.2s, box-shadow 0.2s" }}>
                 <div style={{ position: "relative", paddingTop: "150%", overflow: "hidden" }}>
                   <Card.Img
-                    src={movie.poster && movie.poster.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
+                    src={movie.poster?.startsWith("http") ? movie.poster : FALLBACK_IMAGE}
                     onError={handleImageError}
                     style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 </div>
 
-                <Card.Body className="d-flex flex-column">
+                  <Card.Body className="d-flex flex-column">
                   <Card.Title>{movie.title}</Card.Title>
-                  {movie.genre && <Card.Text><span className="badge bg-secondary">{movie.genre}</span></Card.Text>}
-                  <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
+                    {movie.genre && <Card.Text><span className="badge bg-secondary">{movie.genre}</span></Card.Text>}
+                        <Card.Text>Rating: {movie.rated || "N/A"}</Card.Text>
 
-                  {movie._id ? (
-                    <Button
-                      as={Link}
-                      to={`/movies/${movie._id}`}
-                      variant="info"
-                      className="mt-auto"
-                    >
-                      View Reviews
-                    </Button>
-                  ) : (
-                    <span>No ID</span>
+                      {movie._id && (
+                        <Button
+                          as={Link}
+                            to={`/movies/${movie._id}`}
+                          state={{ movie }} // passes full movie object
+                        variant="info"
+                      >
+                    View Reviews
+                  </Button>
                   )}
                 </Card.Body>
               </Card>
@@ -163,8 +158,7 @@ const MoviesList = () => {
           transform: translateY(-5px);
           box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
-      `}
-      </style>
+      `}</style>
     </Container>
   );
 };

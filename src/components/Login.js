@@ -1,70 +1,47 @@
-// Import React and useState hook for managing component state
 import React, { useState } from "react";
+import { Container, Form, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-// Import Bootstrap form components for styling
-import { Form, Button } from "react-bootstrap";
-
-
-// Functional Login component
-// Receives props from App (login function + routing history)
-const Login = (props) => {
-
-  // ---------------- State ----------------
-
-  // Store username entered by user
+const Login = ({ login }) => {
   const [name, setName] = useState("");
-
-  // Store user ID entered by user
   const [id, setId] = useState("");
+  const navigate = useNavigate();
 
-  // ---------------- Login Function ----------------
-
-  const login = () => {
-
-    // Call login function passed from App component
-    // This updates the global user state
-    props.login({ name, id });
-
-    // Redirect user to movies page after login
-    // history is provided by React Router (v5)
-    props.history.push("/movies");
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!name.trim() || !id.trim()) return alert("Please enter both username and ID.");
+    login({ name, id });
+    navigate("/movies");
   };
 
-  // ---------------- Component UI ----------------
-
   return (
-    <Form>
+    <Container className="mt-4" style={{ maxWidth: "400px" }}>
+      <h3>Login</h3>
+      <Form onSubmit={handleLogin}>
+        <Form.Group className="mb-3">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter username"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </Form.Group>
 
-      {/* Username Input Field */}
-      <Form.Group className="mb-2">
-        <Form.Label>Username</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="Enter username"
-          value={name} // Controlled component
-          onChange={(e) => setName(e.target.value)} // Update state when typing
-        />
-      </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>User ID</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter ID"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+          />
+        </Form.Group>
 
-      {/* User ID Input Field */}
-      <Form.Group className="mb-2">
-        <Form.Label>ID</Form.Label>
-        <Form.Control
-          type="text"
-          placeholder="Enter ID"
-          value={id} // Controlled component
-          onChange={(e) => setId(e.target.value)} // Update state when typing
-        />
-      </Form.Group>
-
-      {/* Submit Button */}
-      <Button onClick={login}>
-        Submit
-      </Button>
-
-    </Form>
+        <Button type="submit" className="w-100">Login</Button>
+      </Form>
+    </Container>
   );
 };
 
-// Export component for use in routing
 export default Login;

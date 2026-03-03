@@ -62,7 +62,6 @@ const MovieDetails = ({ user }) => {
 
   return (
     <div className="container mt-4">
-
       {/* 🔥 Back button */}
       <Button variant="secondary" className="mb-3" onClick={() => navigate(-1)}>
         ← Back
@@ -70,6 +69,19 @@ const MovieDetails = ({ user }) => {
 
       <h2>{movie.title}</h2>
       <p>{movie.plot}</p>
+
+      {user && (
+        <Link
+          to={`/movies/${movieId}/review`}
+          state={{
+            onReviewSaved: (newReview) => setReviews((prev) => [...prev, newReview]),
+          }}
+        >
+          <Button variant="primary" className="mb-3">
+            Add Review
+          </Button>
+        </Link>
+      )}
 
       <h4 className="mt-4">Reviews</h4>
 
@@ -90,8 +102,16 @@ const MovieDetails = ({ user }) => {
             {user && user.id === r.user_id && (
               <>
                 <Link
-                  to={`/movies/${movieId}/add-review`}
-                  state={{ currentReview: r }}
+                  to={`/movies/${movieId}/review`}
+                  state={{
+                    currentReview: r,
+                    onReviewSaved: (updatedReview) =>
+                      setReviews((prev) =>
+                        prev.map((rev) =>
+                          rev._id === updatedReview._id ? updatedReview : rev
+                        )
+                      ),
+                  }}
                 >
                   <Button variant="warning" size="sm" className="me-2">
                     Edit
