@@ -1,72 +1,78 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Spinner, Alert } from "react-bootstrap";
-import { Link, useParams } from "react-router-dom";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
 const MovieDetails = ({ user }) => {
   const { id: movieId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const passedMovie = location.state?.movie;
 
   const [movie, setMovie] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!passedMovie);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Fetch movie and reviews
   useEffect(() => {
+    if (passedMovie) {
+      setMovie(passedMovie);
+      setReviews(passedMovie.reviews || []);
+      setLoading(false);
+      return;
+    }
+
     const fetchMovie = async () => {
-      setLoading(true);
       try {
         const data = await MovieDataService.get(movieId);
-        setMovie({
-          title: data.title,
-          plot: data.plot,
-          poster: data.poster,
-        });
+        setMovie(data);
         setReviews(data.reviews || []);
-      } catch (e) {
-        console.error(e);
-        setError("Failed to load movie and reviews.");
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load movie.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchMovie();
-  }, [movieId]);
+  }, [movieId, passedMovie]);
 
   const handleDelete = async (reviewId) => {
-    if (!window.confirm("Are you sure you want to delete this review?")) return;
-
-    if (!user) {
-      setError("You must be logged in to delete a review.");
-      return;
-    }
+    if (!user) return;
+    if (!window.confirm("Delete this review?")) return;
 
     try {
       setActionLoading(true);
       await MovieDataService.deleteReview(movieId, reviewId, user.id);
 
-      // Remove deleted review from state
       setReviews((prev) => prev.filter((r) => r._id !== reviewId));
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
       setError("Failed to delete review.");
     } finally {
       setActionLoading(false);
     }
   };
 
-  if (loading) return <Spinner animation="border" variant="primary" />;
-
+  if (loading) return <Spinner animation="border" />;
   if (!movie) return <Alert variant="danger">Movie not found.</Alert>;
 
   return (
-    <div className="mt-4">
+    <div className="container mt-4">
+
+      {/* 🔥 Back button */}
+      <Button variant="secondary" className="mb-3" onClick={() => navigate(-1)}>
+        ← Back
+      </Button>
+
       <h2>{movie.title}</h2>
       <p>{movie.plot}</p>
 
-      <h4>Reviews</h4>
+      <h4 className="mt-4">Reviews</h4>
+
       {error && <Alert variant="danger">{error}</Alert>}
       {reviews.length === 0 && <p>No reviews yet.</p>}
 
@@ -76,7 +82,9 @@ const MovieDetails = ({ user }) => {
             <Card.Title>{r.name}</Card.Title>
             <Card.Text>{r.review}</Card.Text>
             <Card.Text>
-              <small className="text-muted">{new Date(r.date).toLocaleString()}</small>
+              <small className="text-muted">
+                {new Date(r.date).toLocaleString()}
+              </small>
             </Card.Text>
 
             {user && user.id === r.user_id && (
@@ -89,6 +97,7 @@ const MovieDetails = ({ user }) => {
                     Edit
                   </Button>
                 </Link>
+
                 <Button
                   variant="danger"
                   size="sm"
