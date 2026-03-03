@@ -13,6 +13,7 @@ import MoviesList from "./components/MoviesList";
 import AddReview from "./components/AddReview";
 import Login from "./components/Login";
 import MovieDetails from "./components/MovieDetails";
+import Movie from "./components/Movie";
 
 function App() {
   const [user, setUser] = useState(null);
