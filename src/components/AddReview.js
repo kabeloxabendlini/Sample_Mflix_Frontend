@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Alert, Spinner, Card, Image } from "react-bootstrap";
-import { Link, useParams, useLocation, useHistory } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
@@ -15,7 +15,7 @@ const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8," +
 const AddReview = ({ user }) => {
   const { id: movieId } = useParams();
   const location = useLocation();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const currentReview = location.state?.currentReview || null;
   const editing = Boolean(currentReview?._id);
@@ -56,9 +56,9 @@ const AddReview = ({ user }) => {
   // Pre-fill review only if creating new review
   useEffect(() => {
     if (!editing && movie) {
-      setReview((prev) =>
-        prev.trim() === "" 
-          ? `I watched this ${movie.genre || ""} movie released in ${movie.release_year || ""}. ` 
+      setReview(prev =>
+        prev.trim() === ""
+          ? `I watched this ${movie.genre || ""} movie released in ${movie.release_year || ""}. `
           : prev
       );
     }
@@ -75,15 +75,22 @@ const AddReview = ({ user }) => {
       return;
     }
 
+    if (!user || !user.id || !user.name) {
+      setError("You must be logged in to submit a review.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
+
       const data = {
-        review: review.trim(),
-        name: user.name,
-        user_id: user.id,
         movie_id: movieId,
+        user_id: user.id,
+        name: user.name,
+        text: review.trim(),
       };
+
       if (editing) data.review_id = currentReview._id;
 
       await (editing
@@ -91,7 +98,8 @@ const AddReview = ({ user }) => {
         : MovieDataService.createReview(data));
 
       setSubmitted(true);
-      setTimeout(() => history.push(`/movies/${movieId}`), 1000);
+      setTimeout(() => navigate(`/movies/${movieId}`), 1000);
+
     } catch (e) {
       console.error(e);
       setError("Failed to save review. Please try again.");
@@ -137,7 +145,6 @@ const AddReview = ({ user }) => {
             <Form.Control
               as="textarea"
               rows={5}
-              required
               value={review}
               onChange={(e) => setReview(e.target.value)}
               disabled={loading}
