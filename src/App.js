@@ -15,6 +15,7 @@ import MoviesList from "./components/MoviesList";
 import Movie from "./components/Movie";
 import AddReview from "./components/AddReview";
 import Login from "./components/Login";
+import MovieDetails from "./components/MovieDetails";
 
 function App() {
   // State to store the currently logged-in user
