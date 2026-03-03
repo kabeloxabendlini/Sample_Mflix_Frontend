@@ -1,14 +1,14 @@
 import axios from "axios";
 
-// Backend URL from environment, fallback to localhost for dev
+// Backend URL from environment, fallback to localhost
 const BASE_URL =
   process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:7000";
 
 // Axios instance with timeout and credentials
 const api = axios.create({
   baseURL: BASE_URL + "/api/v1/movies",
-  withCredentials: true, // use cookies if backend requires auth
-  timeout: 10000,        // 10-second timeout
+  withCredentials: true,
+  timeout: 10000,
 });
 
 // Centralized error handling
@@ -20,7 +20,7 @@ const handleAxiosError = (error, context = "") => {
   } else {
     console.error(`[${context}] Error:`, error.message);
   }
-  throw error; // Rethrow for frontend handling
+  throw error;
 };
 
 class MovieDataService {
@@ -62,33 +62,37 @@ class MovieDataService {
     }
   }
 
-  async createReview(data) {
-    if (!data?.movie_id) throw new Error("Movie ID is required for review");
+  // ✅ Create review
+  async createReview({ movie_id, user_id, name, text }) {
+    if (!movie_id || !user_id || !name || !text)
+      throw new Error("movie_id, user_id, name, and text are required");
     try {
-      const res = await api.post(`/${data.movie_id}/reviews`, data);
+      const res = await api.post(`/${movie_id}/reviews`, { user_id, name, text });
       return res.data;
     } catch (error) {
       handleAxiosError(error, "createReview");
     }
   }
 
-  async updateReview(data) {
-    if (!data?.movie_id) throw new Error("Movie ID is required for review update");
+  // ✅ Update review
+  async updateReview({ movie_id, review_id, user_id, text }) {
+    if (!movie_id || !review_id || !user_id || !text)
+      throw new Error("movie_id, review_id, user_id, and text are required");
     try {
-      const res = await api.put(`/${data.movie_id}/reviews`, data);
+      const res = await api.put(`/${movie_id}/reviews`, { review_id, user_id, text });
       return res.data;
     } catch (error) {
       handleAxiosError(error, "updateReview");
     }
   }
 
-  async deleteReview(movieId, reviewId, userId) {
-    if (!movieId || !reviewId || !userId)
-      throw new Error("Movie ID, Review ID and User ID are required");
-
+  // ✅ Delete review
+  async deleteReview(movie_id, review_id, user_id) {
+    if (!movie_id || !review_id || !user_id)
+      throw new Error("movie_id, review_id, and user_id are required");
     try {
-      const res = await api.delete(`/${movieId}/reviews`, {
-        data: { review_id: reviewId, user_id: userId },
+      const res = await api.delete(`/${movie_id}/reviews`, {
+        data: { review_id, user_id },
       });
       return res.data;
     } catch (error) {
