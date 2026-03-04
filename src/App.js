@@ -11,16 +11,19 @@ import Login from "./components/Login";
 function App() {
   const [user, setUser] = useState(null);
 
-  const login = (userData = null) => setUser(userData);
+  const login = (userData) => setUser(userData);
   const logout = () => setUser(null);
 
   return (
     <Container>
+
       <Navbar bg="light" expand="lg" className="mb-4">
         <Navbar.Brand>Movie Reviews</Navbar.Brand>
 
         <Nav className="me-auto">
-          <Nav.Link as={Link} to="/movies">Movies</Nav.Link>
+          <Nav.Link as={Link} to="/movies">
+            Movies
+          </Nav.Link>
         </Nav>
 
         <Nav>
@@ -32,7 +35,9 @@ function App() {
               <Nav.Link onClick={logout}>Logout</Nav.Link>
             </>
           ) : (
-            <Nav.Link as={Link} to="/login">Login</Nav.Link>
+            <Nav.Link as={Link} to="/login">
+              Login
+            </Nav.Link>
           )}
         </Nav>
       </Navbar>
@@ -40,10 +45,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/movies" replace />} />
         <Route path="/movies" element={<MoviesList />} />
-        <Route path="/movies/:id/review" element={<AddReview user={user} />} />
         <Route path="/movies/:id" element={<MovieDetails user={user} />} />
+        <Route path="/movies/:id/review" element={<AddReview user={user} />} />
         <Route path="/login" element={<Login login={login} />} />
       </Routes>
+
     </Container>
   );
 }

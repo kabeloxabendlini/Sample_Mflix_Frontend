@@ -1,44 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Spinner, Alert } from "react-bootstrap";
-import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
 const MovieDetails = ({ user }) => {
   const { id: movieId } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const passedMovie = location.state?.movie;
 
   const [movie, setMovie] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(!passedMovie);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    if (passedMovie) {
-      setMovie(passedMovie);
-      setReviews(passedMovie.reviews || []);
+  const fetchMovie = async () => {
+    try {
+      setLoading(true);
+      const data = await MovieDataService.get(movieId);
+      setMovie(data);
+      setReviews(data.reviews || []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load movie.");
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    const fetchMovie = async () => {
-      try {
-        const data = await MovieDataService.get(movieId);
-        setMovie(data);
-        setReviews(data.reviews || []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load movie.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchMovie();
-  }, [movieId, passedMovie]);
+  }, [movieId]);
 
   const handleDelete = async (reviewId) => {
     if (!user) return;
@@ -47,8 +38,7 @@ const MovieDetails = ({ user }) => {
     try {
       setActionLoading(true);
       await MovieDataService.deleteReview(movieId, reviewId, user.id);
-
-      setReviews((prev) => prev.filter((r) => r._id !== reviewId));
+      fetchMovie(); // refresh after delete
     } catch (err) {
       console.error(err);
       setError("Failed to delete review.");
@@ -62,8 +52,12 @@ const MovieDetails = ({ user }) => {
 
   return (
     <div className="container mt-4">
-      {/* 🔥 Back button */}
-      <Button variant="secondary" className="mb-3" onClick={() => navigate(-1)}>
+
+      <Button
+        variant="secondary"
+        className="mb-3"
+        onClick={() => navigate(-1)}
+      >
         ← Back
       </Button>
 
@@ -71,12 +65,7 @@ const MovieDetails = ({ user }) => {
       <p>{movie.plot}</p>
 
       {user && (
-        <Link
-          to={`/movies/${movieId}/review`}
-          state={{
-            onReviewSaved: (newReview) => setReviews((prev) => [...prev, newReview]),
-          }}
-        >
+        <Link to={`/movies/${movieId}/review`}>
           <Button variant="primary" className="mb-3">
             Add Review
           </Button>
@@ -103,15 +92,7 @@ const MovieDetails = ({ user }) => {
               <>
                 <Link
                   to={`/movies/${movieId}/review`}
-                  state={{
-                    currentReview: r,
-                    onReviewSaved: (updatedReview) =>
-                      setReviews((prev) =>
-                        prev.map((rev) =>
-                          rev._id === updatedReview._id ? updatedReview : rev
-                        )
-                      ),
-                  }}
+                  state={{ currentReview: r }}
                 >
                   <Button variant="warning" size="sm" className="me-2">
                     Edit
