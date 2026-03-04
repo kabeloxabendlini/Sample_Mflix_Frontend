@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Backend URL from environment, fallback to localhost
 const BASE_URL =
-  process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:7000";
+  process.env.REACT_APP_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:5000";
 
 // Axios instance with timeout and credentials
 const api = axios.create({
