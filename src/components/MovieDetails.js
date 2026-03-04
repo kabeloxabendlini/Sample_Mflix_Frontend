@@ -4,21 +4,18 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import MovieDataService from "../services/movies";
 
 const MovieDetails = ({ user }) => {
-  const { id: movieId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [movie, setMovie] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchMovie = async () => {
     try {
       setLoading(true);
-      const data = await MovieDataService.get(movieId);
+      const data = await MovieDataService.get(id);
       setMovie(data);
-      setReviews(data.reviews || []);
     } catch (err) {
       console.error(err);
       setError("Failed to load movie.");
@@ -29,21 +26,17 @@ const MovieDetails = ({ user }) => {
 
   useEffect(() => {
     fetchMovie();
-  }, [movieId]);
+  }, [id]);
 
   const handleDelete = async (reviewId) => {
-    if (!user) return;
     if (!window.confirm("Delete this review?")) return;
 
     try {
-      setActionLoading(true);
-      await MovieDataService.deleteReview(movieId, reviewId, user.id);
+      await MovieDataService.deleteReview(id, reviewId, user.id);
       fetchMovie(); // refresh after delete
     } catch (err) {
       console.error(err);
       setError("Failed to delete review.");
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -53,65 +46,58 @@ const MovieDetails = ({ user }) => {
   return (
     <div className="container mt-4">
 
-      <Button
-        variant="secondary"
-        className="mb-3"
-        onClick={() => navigate(-1)}
-      >
+      <Button variant="secondary" onClick={() => navigate(-1)}>
         ← Back
       </Button>
 
-      <h2>{movie.title}</h2>
+      <h2 className="mt-3">{movie.title}</h2>
       <p>{movie.plot}</p>
 
       {user && (
-        <Link to={`/movies/${movieId}/review`}>
-          <Button variant="primary" className="mb-3">
-            Add Review
-          </Button>
+        <Link to={`/movies/${id}/review`}>
+          <Button className="mb-3">Add Review</Button>
         </Link>
       )}
 
-      <h4 className="mt-4">Reviews</h4>
+      <h4>Reviews</h4>
 
-      {error && <Alert variant="danger">{error}</Alert>}
-      {reviews.length === 0 && <p>No reviews yet.</p>}
+      {!movie.reviews?.length && <p>No reviews yet.</p>}
 
-      {reviews.map((r) => (
+      {movie.reviews?.map((r) => (
         <Card key={r._id} className="mb-3">
           <Card.Body>
             <Card.Title>{r.name}</Card.Title>
             <Card.Text>{r.review}</Card.Text>
-            <Card.Text>
-              <small className="text-muted">
-                {new Date(r.date).toLocaleString()}
-              </small>
-            </Card.Text>
+            <small>
+              {new Date(r.date).toLocaleString()}
+            </small>
 
             {user && user.id === r.user_id && (
               <>
                 <Link
-                  to={`/movies/${movieId}/review`}
+                  to={`/movies/${id}/review`}
                   state={{ currentReview: r }}
                 >
-                  <Button variant="warning" size="sm" className="me-2">
+                  <Button size="sm" variant="warning" className="ms-2">
                     Edit
                   </Button>
                 </Link>
 
                 <Button
-                  variant="danger"
                   size="sm"
+                  variant="danger"
+                  className="ms-2"
                   onClick={() => handleDelete(r._id)}
-                  disabled={actionLoading}
                 >
-                  {actionLoading ? "Deleting..." : "Delete"}
+                  Delete
                 </Button>
               </>
             )}
           </Card.Body>
         </Card>
       ))}
+
+      {error && <Alert variant="danger">{error}</Alert>}
     </div>
   );
 };
